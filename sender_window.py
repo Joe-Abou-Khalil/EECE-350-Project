@@ -233,7 +233,7 @@ class SenderWindow:
         try:
             # recvfrom is set to delay for at most 2ms
             data, _ = self.sock.recvfrom(2048)
-        except socket.timeout:
+        except (socket.timeout, ConnectionResetError):
             return  # no ACK arrived in 2 ms
         # returns so that it dosent get frozen and contiuos
         if len(data) < HEADER_SIZE:
