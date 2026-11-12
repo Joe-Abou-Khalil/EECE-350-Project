@@ -48,9 +48,9 @@ HEADER_FORMAT = "!BIH"
 HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
 
 # Give each kind of packet a number that can be placed in the header
-DATA_PACKET = 1
-ACK_PACKET = 2
-END_PACKET = 3
+DATA_PACKET = 0
+ACK_PACKET = 1
+END_PACKET = 2
 
 # Convert packet type numbers into readable names for terminal messages
 PACKET_TYPE_NAMES = {DATA_PACKET: "DATA", ACK_PACKET: "ACK", END_PACKET: "END"}
@@ -317,57 +317,41 @@ def wait_for_duplicate_end(
     end_sequence,
     final_ack,
 ):
-    """Briefly resend the final ACK if the sender retransmits END."""
-    # Set one fixed finishing time for the whole waiting period
-    deadline = time.monotonic() + COMPLETION_WAIT_SECONDS
-    print(
-        f"Waiting {COMPLETION_WAIT_SECONDS} seconds for a duplicate END..."
-    )
+    """Keep answering duplicate END packets until the user presses Ctrl+C."""
 
-    # Keep checking until the fixed finishing time is reached
+    # Wait for packets without a time limit
+    receiver_socket.settimeout(None)
+    print("Transfer finished. Listening for duplicate END packets.")
+    print("Press Ctrl+C after the sender reports completion.")
+
     while True:
-        # Calculate how much of the waiting period is left
-        remaining_time = deadline - time.monotonic()
+        # Wait for another packet and find out who sent it
+        packet_bytes, packet_sender = receiver_socket.recvfrom(
+            MAX_DATAGRAM_SIZE
+        )
 
-        # Stop when no waiting time remains
-        if remaining_time <= 0:
-            break
-
-        # Make recvfrom() stop waiting when the remaining time expires
-        receiver_socket.settimeout(remaining_time)
-
-        # Wait for a possible retransmission from the sender
-        try:
-            packet_bytes, packet_sender = receiver_socket.recvfrom(
-                MAX_DATAGRAM_SIZE
-            )
-        except socket.timeout:
-            # No packet arrived before the finishing time
-            break
-
-        # Ignore packets that come from a different network address
+        # Only answer the sender that completed this transfer
         if packet_sender != sender_address:
             continue
 
-        # Check that the possible retransmission is a valid packet
+        # Read the header and reject malformed packets
         try:
             packet_type, sequence_number, payload = parse_packet(packet_bytes)
         except ValueError:
-            # Ignore malformed packets during the final waiting period
             continue
 
-        # Resend the final ACK only for the same END packet
-        if packet_type == END_PACKET and sequence_number == end_sequence:
+        # Check for END with the completed sequence number and a valid hash size
+        if (
+            packet_type == END_PACKET
+            and sequence_number == end_sequence
+            and len(payload) == SHA256_DIGEST_SIZE
+        ):
+            # Repeat the final ACK because the previous copy may have been lost
             send_ack(receiver_socket, sender_address, final_ack)
             print(
                 f"RECV duplicate END seq={end_sequence} "
                 f"-> resend ACK {final_ack}"
             )
-
-    # Return the socket to its normal mode with no timeout
-    receiver_socket.settimeout(None)
-    print("Receiver transfer complete.")
-
 
 def main():
     """Start the receiver and close its socket when the program stops."""
