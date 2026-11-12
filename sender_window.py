@@ -287,6 +287,9 @@ class SenderWindow:
                 self.show_window()  # print out what happend
         # were out of the while loop so its done
         self.stats["transfer_time"] = time.time() - start  # calc transfet time
+         # include in stats for printing
+        self.stats["estimated_rtt"] = self.estimated_rtt
+        self.stats["dev_rtt"] = self.dev_rtt
         return self.stats  # return stats
 
     def print_summary(self):
