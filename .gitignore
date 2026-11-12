@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+received_file.bin
+*.log
+*.err
+.vscode/
+.idea/
