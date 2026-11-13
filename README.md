@@ -1,6 +1,6 @@
 # EECE 350 Reliable File Transfer over UDP
 
-A Python 3 project that transfers a file over UDP while handling simulated packet loss and reordering. The receiver reconstructs the file and checks its SHA-256 hash. Only Python standard libraries are used.
+A Python project that transfers a file over UDP while handling packet loss and reordering. The receiver reconstructs the file and checks its SHA-256 hash.
 
 ## Current status
 
@@ -10,15 +10,13 @@ The instructions below describe the uploaded code. Full two-terminal transfer in
 
 ## Team responsibilities and files
 
-All current Python modules are in the repository root. Keep them together so their imports work.
+All current Python modules are in the repository. Keep them together so their imports work.
 
 | Member | Responsibility | Current files |
 | --- | --- | --- |
 | Member 1 - Taline Bteddini | File splitting, packet creation, original SHA-256 hash, unreliable channel, and display helpers | `packet.py`, `channel.py`, `display.py` |
 | Member 2 - Kassem Haidar | Sliding window, ACK processing, timers, retransmission, fast retransmit, and sender statistics | `sender_window.py` |
 | Member 3 - Joe Abou Khalil | Receiver, cumulative ACKs, buffering, duplicate handling, file reconstruction, END handling, and SHA-256 verification | `receiver.py` |
-
-Members 1 and 2 need to connect their components in the sender startup script.
 
 ## Shared packet format
 
@@ -29,8 +27,6 @@ The uploaded modules use Python `struct` format `!BIH`. The header is 7 bytes. `
 | Packet type | `B` | 1 byte | DATA = 0, ACK = 1, END = 2 |
 | Sequence or ACK number | `I` | 4 bytes | Unsigned packet sequence number or next expected sequence |
 | Payload length | `H` | 2 bytes | Unsigned number of payload bytes; excludes the header |
-
-The payload follows the header. All members must keep this format consistent when making changes.
 
 - DATA sequence numbers start at `0` and increase by one per packet, not per byte.
 - The default DATA chunk size is 1,024 bytes. The last chunk may be smaller.
