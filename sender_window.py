@@ -11,6 +11,7 @@ sender_window.py — EECE 350 Final Project: Reliable File Transfer over UDP
 import socket  # gives access to the OS's netoworking
 import struct  # allows us to convert from numberts to bytes
 import time  # gives us the time, timers, ability to pause.
+# [display] shared output helpers (display.py, Member 1)
 from display import log_event, COLORS, RESET, USE_COLOR, _print_lock
 
 HEADER_FMT = "!BIH"  # format string for packet header used by struct library
@@ -81,18 +82,18 @@ class SenderWindow:
 
     # display stuff
 
-        def _c(self, kind, text):
+    def _c(self, kind, text):
         """colors text  [display] using the shared display.py palette"""
         color = COLORS.get(kind, "")
         if self.color and USE_COLOR and color:
             return f"{color}{text}{RESET}"
         return text  # prints the text normaly if color is off
 
-        def log(self, text, kind="INFO"):
+    def log(self, text, kind="INFO"):
         """prints the line per event  [display] through the shared log_event()"""
         log_event("SENDER", kind, text)
 
-        def _seq_label(self, seq):
+   def _seq_label(self, seq):
         """checks in the current sequence is the end packet"""
         # [display] END(n) label, same as channel.py
         return f"END({seq})" if seq == self.total - 1 else str(seq)
@@ -106,11 +107,11 @@ class SenderWindow:
         for s in range(self.base, hi+1):  # goes over all the packets to make their strings
             st = self.state[s]  # read the state of that packet (by index)
             label = f"{s}"  # convert to string
-                       # concider each case and give it a diffrent collor
+           # concider each case and give it a diffrent collor
             # [display] colors come from display.py via STATE_KIND
             letter = {SENT: "S", RETRANSMITTED: "R", ACKED: "A"}.get(st, ".")
             cells.append(self._c(STATE_KIND[st], f"{label}:{letter}"))
-               view = (self._c("WINDOW", f"WINDOW [{self.base}–{max(hi, self.base)}]") + "  "  # max to ensure no reverse windows
+        view = (self._c("WINDOW", f"WINDOW [{self.base}–{max(hi, self.base)}]") + "  "  # max to ensure no reverse windows
                 + " ".join(cells)
                 # prints timer
                 + self._c("INFO", f"   timeout={self.timeout_interval*1000:.0f}ms"))
@@ -293,7 +294,7 @@ class SenderWindow:
         self.stats["dev_rtt"] = self.dev_rtt
         return self.stats  # return stats
 
-        def print_summary(self):
+    def print_summary(self):
         """sender half of the final summary
         [display] same block layout as display.print_settings"""
         s = self.stats
