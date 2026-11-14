@@ -3,6 +3,8 @@ sender_window.py — EECE 350 Final Project: Reliable File Transfer over UDP
 
  MEMBER 2: Kassem Haidar
  Part: Sender — sliding window, TCP-style timer, retransmission, statistics
+  DISPLAY NOTE: output formatting in this file was switched to the shared
+ display.py helpers (Member 1) so sender, channel and receiver logs share one
 """
 
 
