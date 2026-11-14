@@ -183,29 +183,29 @@ def receive_datagrams(receiver_socket, output_file):
             packet_type, sequence_number, payload = parse_packet(packet_bytes)
         except ValueError as error:
             # A bad packet is reported and ignored without stopping the receiver
-            print(
+             log("ERROR",
                 f"DISCARD malformed packet from "
-                f"{sender_address[0]}:{sender_address[1]}: {error}\n"
-            )
+                f"{sender_address[0]}:{sender_address[1]}: {error}")
             continue
 
         # ACK packets belong at the sender, so the receiver does not process them
         if packet_type == ACK_PACKET:
-            print("IGNORE unexpected ACK received by the receiver\n")
+            log("INFO", "IGNORE unexpected ACK received by the receiver")
             continue
 
         # Get a readable name such as DATA or END for event messages
         packet_name = PACKET_TYPE_NAMES[packet_type]
+        # [display] short label used in every event line
+        packet_label = label(packet_type, sequence_number)
 
         # END must contain exactly one raw 32-byte SHA-256 hash
         if packet_type == END_PACKET and len(payload) != SHA256_DIGEST_SIZE:
             # Repeat the current ACK because this invalid END was not accepted
             send_ack(receiver_socket, sender_address, expected_sequence)
-            print(
-                f"DISCARD END seq={sequence_number}: expected a "
+            log("ERROR",
+                f"DISCARD {packet_label}: expected a "
                 f"{SHA256_DIGEST_SIZE}-byte SHA-256 hash "
-                f"-> ACK {expected_sequence}\n"
-            )
+                f"→ ACK {expected_sequence}")
             continue
 
         # A larger sequence number means an earlier packet is still missing
@@ -215,30 +215,24 @@ def receive_datagrams(receiver_socket, output_file):
 
             # Do not store a second copy if this future packet is already buffered
             if sequence_number in out_of_order_buffer:
-                print(
-                    f"RECV {packet_name} seq={sequence_number} duplicate already "
-                    f"buffered, "
-                    f"discarded -> DUP ACK {expected_sequence}\n"
-                )
+                log("DUPACK",
+                    f"RECV {packet_label} duplicate, already buffered, "
+                    f"discarded → DUP ACK {expected_sequence}")
             else:
                 # Save the packet type and payload under its sequence number
                 out_of_order_buffer[sequence_number] = (packet_type, payload)
-                print(
-                    f"RECV {packet_name} seq={sequence_number} out of order, "
-                    f"buffered "
-                    f"-> DUP ACK {expected_sequence}\n"
-                )
+                log("BUFFER",
+                    f"RECV {packet_label} out of order, buffered "
+                    f"→ DUP ACK {expected_sequence}")
             continue
 
         # A smaller sequence number belongs to a packet already accepted earlier
         if sequence_number < expected_sequence:
             # Discard the duplicate and repeat the current cumulative ACK
             send_ack(receiver_socket, sender_address, expected_sequence)
-            print(
-                f"RECV {packet_name} seq={sequence_number} duplicate already "
-                f"accepted, "
-                f"discarded -> ACK {expected_sequence}\n"
-            )
+            log("DUPACK",
+                f"RECV {packet_label} duplicate, already accepted, "
+                f"discarded → ACK {expected_sequence}")
             continue
 
         # This is the exact packet the receiver was waiting for
@@ -286,17 +280,15 @@ def receive_datagrams(receiver_socket, output_file):
         if original_hash is not None:
             # Report a simple in-order END when no buffered packet was processed
             if len(accepted_sequences) == 1:
-                print(
-                    f"RECV END seq={end_sequence} in order "
-                    f"-> ACK {expected_sequence}\n"
-                )
+                log("RECV",
+                    f"RECV END({end_sequence}) in order "
+                    f"→ ACK {expected_sequence}")
             else:
                 # Report the buffered packets processed after a gap was filled
-                print(
-                    f"RECV {packet_name} seq={sequence_number} fills gap; "
-                    f"processed buffered {accepted_sequences[1:]} including END "
-                    f"-> ACK {expected_sequence}\n"
-                )
+                 log("RECV",
+                    f"RECV {packet_label} fills gap, released buffered "
+                    f"{accepted_sequences[1:]} incl. END "
+                    f"→ ACK {expected_sequence}")
 
             # Give main() the information needed for hashing and final ACK recovery
             return (
@@ -308,20 +300,17 @@ def receive_datagrams(receiver_socket, output_file):
 
         # If no buffered packet was processed, report a normal in-order DATA event
         if len(accepted_sequences) == 1:
-            print(
-                f"RECV DATA seq={sequence_number} in order, "
-                f"length={len(payload)} -> ACK {expected_sequence}\n"
-            )
+            log("RECV",
+                f"RECV {packet_label} in order ({len(payload)} B) "
+                f"→ ACK {expected_sequence}")
         else:
             # Leave out the first packet so this list contains only buffered ones
             drained_sequences = accepted_sequences[1:]
 
             # Report the cumulative ACK after processing the buffered packets
-            print(
-                f"RECV DATA seq={sequence_number} fills gap; "
-                f"processed buffered {drained_sequences} "
-                f"-> ACK {expected_sequence}\n"
-            )
+            log("RECV",
+                f"RECV {packet_label} fills gap, released buffered "
+                f"{drained_sequences} → ACK {expected_sequence}")
 
 
 def calculate_file_hash(file_name):
