@@ -158,9 +158,20 @@ def receive_datagrams(receiver_socket, output_file):
     out_of_order_buffer = {}
 
     # Show the receiver settings before packet processing begins
-    print(f"Receiver listening on {RECEIVER_IP}:{RECEIVER_PORT}")
-    print(f"Next expected DATA sequence: {expected_sequence}")
-    print("Press Ctrl+C to stop the receiver.\n")
+    # [display] same block layout as display.print_settings
+    with _print_lock:
+        line = "=" * 60
+        print(line)
+        print(" RELIABLE FILE TRANSFER OVER UDP — RECEIVER")
+        print("-" * 60)
+        print(f" Listening on  : {RECEIVER_IP}:{RECEIVER_PORT}")
+        print(f" Output file   : {OUTPUT_FILE_NAME}")
+        print(f" Next expected : {expected_sequence}")
+        print(" Stop          : Ctrl+C")
+        print(line, flush=True)
+
+    # [display] event timestamps start at 0 when the receiver is ready
+    reset_clock()
 
     # Keep receiving packets until a valid END packet is accepted
     while True:
