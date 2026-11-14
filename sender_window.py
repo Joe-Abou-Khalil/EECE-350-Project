@@ -34,6 +34,10 @@ C = {"reset": "\033[0m", "green": "\033[92m", "yellow": "\033[93m",
      "grey": "\033[90m", "bold": "\033[1m"}
 
 
+# [display] which display.py color each window state uses
+STATE_KIND = {SENT: "SEND", RETRANSMITTED: "RETX", ACKED: "ACK", NOT_SENT: "INFO"}
+
+
 class SenderWindow:
     """sliding-window sender by Kassem Haidar"""
 
@@ -80,15 +84,16 @@ class SenderWindow:
 
     # display stuff
 
-    def _c(self, name, text):
-        """colors text"""
-        return f"{C[name]}{text}{C['reset']}" if self.color else text  # prints the text normaly if color is off
+        def _c(self, kind, text):
+        """colors text  [display] using the shared display.py palette"""
+        color = COLORS.get(kind, "")
+        if self.color and USE_COLOR and color:
+            return f"{color}{text}{RESET}"
+        return text  # prints the text normaly if color is off
 
-    def log(self, text, color="reset"):
-        """prints the line per event"""
-        stamp = time.strftime("%H:%M:%S")  # time
-        print(f"{self._c('grey', stamp)}  {self._c(color, text)}",
-              flush=True)  # print
+        def log(self, text, kind="INFO"):
+        """prints the line per event  [display] through the shared log_event()"""
+        log_event("SENDER", kind, text)
 
     def _seq_label(self, seq):
         """checks in the current sequence is the end packet"""
