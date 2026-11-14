@@ -109,22 +109,18 @@ class SenderWindow:
         for s in range(self.base, hi+1):  # goes over all the packets to make their strings
             st = self.state[s]  # read the state of that packet (by index)
             label = f"{s}"  # convert to string
-            # concider each case and give it a diffrent collor
-            if st == SENT:
-                cells.append(self._c("yellow", f"{label}:S"))
-            elif st == RETRANSMITTED:
-                cells.append(self._c("magenta", f"{label}:R"))
-            elif st == ACKED:
-                cells.append(self._c("green", f"{label}:A"))
-            else:  # not yet sent, window just slid
-                cells.append(self._c("grey", f"{label}:."))
-        view = (f"WINDOW [{self.base}–{max(hi, self.base)}]  "  # max to ensure no reverse windows
+                       # concider each case and give it a diffrent collor
+            # [display] colors come from display.py via STATE_KIND
+            letter = {SENT: "S", RETRANSMITTED: "R", ACKED: "A"}.get(st, ".")
+            cells.append(self._c(STATE_KIND[st], f"{label}:{letter}"))
+               view = (self._c("WINDOW", f"WINDOW [{self.base}–{max(hi, self.base)}]") + "  "  # max to ensure no reverse windows
                 + " ".join(cells)
                 # prints timer
-                + self._c("grey", f"   timeout={self.timeout_interval*1000:.0f}ms"))
+                + self._c("INFO", f"   timeout={self.timeout_interval*1000:.0f}ms"))
         if view != self._last_window_view:      # print only when something changed
             self._last_window_view = view
-            self.log(view, "cyan")  # cyan for the prefix is applied here
+            # [display] no whole-line color here: each cell already carries its own
+            log_event("SENDER", None, view)
 
     # sending helpers
 
