@@ -17,8 +17,8 @@ import sys  # to error and exit
 # import everything needed from the other files
 from packet import build_packets, CHUNK_SIZE   # makes the packets
 from channel import UnreliableChannel  # unrelaible chanel to send through
-# display stuff TODO add  print_final_summary to imports
-from display import print_settings, reset_clock
+# display stuff (print_final_summary added by Member 1)
+from display import print_settings, reset_clock, print_final_summary
 from sender_window import SenderWindow           # sender
 
 
