@@ -11,7 +11,7 @@ sender_window.py — EECE 350 Final Project: Reliable File Transfer over UDP
 import socket  # gives access to the OS's netoworking
 import struct  # allows us to convert from numberts to bytes
 import time  # gives us the time, timers, ability to pause.
-
+from display import log_event, COLORS, RESET, USE_COLOR, _print_lock
 
 HEADER_FMT = "!BIH"  # format string for packet header used by struct library
 # ! = network byte order, B unsigned char for byte type, I unsigned int for seq number,H unsigned short for data length
