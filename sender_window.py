@@ -142,7 +142,7 @@ class SenderWindow:
             if self.timed_seq is None:
                 self.timed_seq = seq  # store seq number of the packet being timed
                 self.timed_start = time.time()  # store send time to compare later
-            self.log(f"SEND {self._seq_label(seq)}", "reset")  # print it
+            self.log(f"SEND {self._seq_label(seq)}", "SEND")  # print it [display] kind
         # gives the unreliable connection the packet
         self.channel_send(self.packets[seq])
 
@@ -200,7 +200,7 @@ class SenderWindow:
                 self.state[s] = ACKED
             self.log(f"ACK {ack if ack < self.total else 'END'} received "
                      # print the acked packets
-                     f"→ packets {self.base}–{newest} acknowledged", "green")
+                     f"→ packets {self.base}–{newest} acknowledged", "ACK")  # [display] kind
             self.base = ack   # slide the window
             self.dup_count = 0  # new ack means not duplicate so resest
             # what to do with the timer?
@@ -218,12 +218,12 @@ class SenderWindow:
             self.stats["duplicate_acks"] += 1  # update stat
             self.dup_count += 1  # update the number of consequitive duplicates
             self.log(f"DUP ACK {ack} (#{self.dup_count})",
-                     "yellow")  # print the new duplicate
+                        "DUPACK")  # print the new duplicate  [display] kind
             # fast retransmit case and still packets to send
             if self.dup_count == DUP_ACK_THRESHOLD and self.base < self.total:
                 self.stats["fast_retransmits"] += 1  # update stat
                 self.log(f"3 DUP ACKS → RETRANSMIT {self._seq_label(self.base)}",
-                         "magenta")  # print fast retransmit
+                         "RETX")  # print fast retransmit  [display] kind
                 # transmit the missing packet
                 self._transmit(self.base, retransmission=True)
                 self.show_window()  # print whats going on
@@ -283,7 +283,7 @@ class SenderWindow:
                 # timer is implictly allways of the base segment so we get its label
                 label = self._seq_label(self.base)
                 # print out
-                self.log(f"TIMEOUT {label} → RETRANSMIT {label}", "red")
+                self.log(f"TIMEOUT {label} → RETRANSMIT {label}", "TIMEOUT")  # [display] kind
                 # retransmit smallest not acked segment
                 self._transmit(self.base, retransmission=True)
                 # reset timer by timeout case (double)
