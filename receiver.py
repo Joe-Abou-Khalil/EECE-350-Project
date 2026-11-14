@@ -346,8 +346,9 @@ def wait_for_duplicate_end(
 
     # Wait for packets without a time limit
     receiver_socket.settimeout(None)
-    print("Transfer finished. Listening for duplicate END packets.")
-    print("Press Ctrl+C after the sender reports completion.")
+        # [display] shared log format
+    log("INFO", "Transfer finished. Listening for duplicate END packets.")
+    log("INFO", "Press Ctrl+C after the sender reports completion.")
 
     while True:
         # Wait for another packet and find out who sent it
@@ -373,10 +374,9 @@ def wait_for_duplicate_end(
         ):
             # Repeat the final ACK because the previous copy may have been lost
             send_ack(receiver_socket, sender_address, final_ack)
-            print(
-                f"RECV duplicate END seq={end_sequence} "
-                f"-> resend ACK {final_ack}"
-            )
+            log("ACK",
+                f"RECV duplicate END({end_sequence}) "
+                f"→ resend ACK {final_ack}")
 
 def main():
     """Start the receiver and close its socket when the program stops."""
@@ -386,7 +386,7 @@ def main():
     try:
         # Open a new binary output file and replace an older file with this name
         with open(OUTPUT_FILE_NAME, "wb") as output_file:
-            print(f"Writing accepted DATA to {OUTPUT_FILE_NAME}")
+        # [display] the output file name is now shown in the receiver settings block
 
             # Receive through END and save the values needed after the file closes
             original_hash, end_sequence, sender_address, final_ack = (
@@ -396,15 +396,23 @@ def main():
         # Hash the completed file after the with block has closed it
         reconstructed_hash = calculate_file_hash(OUTPUT_FILE_NAME)
 
-        # Display both hashes in readable hexadecimal form
-        print(f"Original SHA-256:      {original_hash.hex()}")
-        print(f"Reconstructed SHA-256: {reconstructed_hash.hex()}")
-
         # Matching hashes mean the reconstructed bytes are correct
         if reconstructed_hash == original_hash:
-            print("File integrity: MATCH")
+            verdict = paint("OK", "MATCH")
         else:
-            print("File integrity: MISMATCH")
+            verdict = paint("ERROR", "MISMATCH")
+
+        # Display both hashes in readable hexadecimal form
+        # [display] same block layout as display.print_settings
+        with _print_lock:
+            line = "=" * 60
+            print(line)
+            print(" RECEIVER SUMMARY (Member 3 — file check)")
+            print("-" * 60)
+            print(f" Original SHA-256      : {original_hash.hex()}")
+            print(f" Reconstructed SHA-256 : {reconstructed_hash.hex()}")
+            print(f" File integrity        : {verdict}")
+            print(line, flush=True)
 
         # Stay available briefly in case the sender did not receive the final ACK
         wait_for_duplicate_end(
@@ -415,7 +423,8 @@ def main():
         )
     except KeyboardInterrupt:
         # Ctrl+C lets the user stop the receiver without a traceback
-        print("\nReceiver stopped by the user.")
+        print()
+        log("INFO", "Receiver stopped by the user.")  # [display]
     finally:
         # Always release the UDP socket, even after an error or Ctrl+C
         receiver_socket.close()
