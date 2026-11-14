@@ -63,6 +63,23 @@ END_PACKET = 2
 # Convert packet type numbers into readable names for terminal messages
 PACKET_TYPE_NAMES = {DATA_PACKET: "DATA", ACK_PACKET: "ACK", END_PACKET: "END"}
 
+# [display] one event line through the shared log_event()
+def log(kind, text):
+    log_event("RECEIVER", kind, text)
+
+
+# [display] packet label in the same style as channel.py: "12" or "END(40)"
+def label(packet_type, sequence_number):
+    if packet_type == END_PACKET:
+        return f"END({sequence_number})"
+    return str(sequence_number)
+
+
+# [display] color one word with the shared palette
+def paint(kind, text):
+    color = COLORS.get(kind, "")
+    return f"{color}{text}{RESET}" if USE_COLOR and color else text
+
 
 def create_receiver_socket():
     """Create a UDP socket and attach it to the receiver address."""
