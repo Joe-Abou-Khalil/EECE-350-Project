@@ -87,4 +87,29 @@ def print_settings(info, window_size, loss, reorder):
         print(f" Reorder       : {reorder}")
         print(line, flush=True)
 
+
+def print_final_summary(stats, channel_stats):
+   
+    with _print_lock:
+        line = "=" * 60
+        print(line)
+        print(" TRANSFER SUMMARY")
+        print("-" * 60)
+        print(f" Packets in file (DATA+END) : {stats['new_packets']}")
+        print(f" Packets sent (incl. retx)  : {stats['transmissions']}")
+        print(f" Dropped (simulated)        : {channel_stats['dropped']}")
+        print(f" Reordered (simulated)      : {channel_stats['reordered']}")
+        print(f" Retransmitted              : {stats['retransmissions']}")
+        print(f"   by timeout               : {stats['timeouts']}")
+        print(f"   by fast retransmit       : {stats['fast_retransmits']}")
+        print(f" Timeouts                   : {stats['timeouts']}")
+        print(f" Duplicate ACKs received    : {stats['duplicate_acks']}")
+        print(f" Transfer time              : {stats['transfer_time']:.3f} s")
+        if stats.get("estimated_rtt") is not None:
+            print(f" EstimatedRTT / DevRTT      : "
+                  f"{stats['estimated_rtt'] * 1000:.2f} ms / "
+                  f"{stats['dev_rtt'] * 1000:.2f} ms")
+        print(" File check                 : see receiver terminal (MATCH / MISMATCH)")
+        print(line, flush=True)
+
    
