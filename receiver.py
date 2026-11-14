@@ -7,6 +7,11 @@ tested, and modified by the student.
 This program receives packets, validates headers, sends cumulative ACKs,
 buffers out-of-order packets, reconstructs the file, and verifies SHA-256.
 The protocol constants are provisional until approved by all group members.
+
+DISPLAY NOTE: output formatting was switched to the shared display.py helpers
+(Member 1) so receiver, sender and channel logs share one format and color
+scheme. Only printing changed; receiving, ACK, buffering and hashing logic is
+Member 3's original code. Every changed spot is marked "# [display]".
 """
 
 # Calculate the SHA-256 hash of the reconstructed file
@@ -20,6 +25,9 @@ import struct
 
 # Measure the short waiting period after the END packet
 import time
+
+# [display] shared output helpers (display.py, Member 1)
+from display import log_event, reset_clock, COLORS, RESET, USE_COLOR, _print_lock
 
 
 # Use this computer as the receiver during local testing
