@@ -93,7 +93,7 @@ class SenderWindow:
         """prints the line per event  [display] through the shared log_event()"""
         log_event("SENDER", kind, text)
 
-   def _seq_label(self, seq):
+    def _seq_label(self, seq):
         """checks in the current sequence is the end packet"""
         # [display] END(n) label, same as channel.py
         return f"END({seq})" if seq == self.total - 1 else str(seq)
@@ -107,7 +107,7 @@ class SenderWindow:
         for s in range(self.base, hi+1):  # goes over all the packets to make their strings
             st = self.state[s]  # read the state of that packet (by index)
             label = f"{s}"  # convert to string
-           # concider each case and give it a diffrent collor
+            # concider each case and give it a diffrent collor
             # [display] colors come from display.py via STATE_KIND
             letter = {SENT: "S", RETRANSMITTED: "R", ACKED: "A"}.get(st, ".")
             cells.append(self._c(STATE_KIND[st], f"{label}:{letter}"))
