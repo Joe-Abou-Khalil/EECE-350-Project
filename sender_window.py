@@ -28,10 +28,7 @@ BETA = 0.25
 INITIAL_TIMEOUT = 1.0  # deafult from book
 DUP_ACK_THRESHOLD = 3  # deafult
 
-# colors for terminal
-C = {"reset": "\033[0m", "green": "\033[92m", "yellow": "\033[93m",
-     "red": "\033[91m", "cyan": "\033[96m", "magenta": "\033[95m",
-     "grey": "\033[90m", "bold": "\033[1m"}
+# [display] the local color table was removed; colors now come from display.COLORS
 
 
 # [display] which display.py color each window state uses
@@ -296,24 +293,26 @@ class SenderWindow:
         self.stats["dev_rtt"] = self.dev_rtt
         return self.stats  # return stats
 
-    def print_summary(self):
-        """sender half of the final summary"""
+        def print_summary(self):
+        """sender half of the final summary
+        [display] same block layout as display.print_settings"""
         s = self.stats
-        line = self._c("bold", "=" * 52)  # makes a line \__'-'__/
-        print(line)
-        print(self._c("bold", "  SENDER SUMMARY (Member 2 — window & retransmission)"))
-        print(line)
-        print(f"  Packets in file (incl. END) : {self.total}")
-        print(f"  New packets sent            : {s['new_packets']}")
-        print(f"  Total transmissions         : {s['transmissions']}")
-        print(f"  Retransmissions             : {s['retransmissions']}")
-        print(f"     ├ by timeout             : {s['timeouts']}")
-        print(f"     └ by fast retransmit     : {s['fast_retransmits']}")
-        print(f"  ACKs received               : {s['acks_received']}")
-        print(f"     └ of which duplicates    : {s['duplicate_acks']}")
-        print(f"  Transfer time               : {s['transfer_time']:.3f} s")
-        if self.estimated_rtt is not None:
-            print(f"  Final EstimatedRTT / DevRTT : {self.estimated_rtt*1000:.2f} ms / "
-                  f"{self.dev_rtt*1000:.2f} ms")
-        print(line)
+        with _print_lock:
+            line = "=" * 60
+            print(line)
+            print(" SENDER SUMMARY (Member 2 — window & retransmission)")
+            print("-" * 60)
+            print(f" Packets in file (incl. END) : {self.total}")
+            print(f" New packets sent            : {s['new_packets']}")
+            print(f" Total transmissions         : {s['transmissions']}")
+            print(f" Retransmissions             : {s['retransmissions']}")
+            print(f"    ├ by timeout             : {s['timeouts']}")
+            print(f"    └ by fast retransmit     : {s['fast_retransmits']}")
+            print(f" ACKs received               : {s['acks_received']}")
+            print(f"    └ of which duplicates    : {s['duplicate_acks']}")
+            print(f" Transfer time               : {s['transfer_time']:.3f} s")
+            if self.estimated_rtt is not None:
+                print(f" Final EstimatedRTT / DevRTT : {self.estimated_rtt*1000:.2f} ms / "
+                      f"{self.dev_rtt*1000:.2f} ms")
+            print(line, flush=True)
     # pretty printing for a good grade :)
