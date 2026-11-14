@@ -3,13 +3,16 @@ sender_window.py — EECE 350 Final Project: Reliable File Transfer over UDP
 
  MEMBER 2: Kassem Haidar
  Part: Sender — sliding window, TCP-style timer, retransmission, statistics
+  DISPLAY NOTE: output formatting in this file was switched to the shared
+ display.py helpers (Member 1) so sender, channel and receiver logs share one
 """
 
 
 import socket  # gives access to the OS's netoworking
 import struct  # allows us to convert from numberts to bytes
 import time  # gives us the time, timers, ability to pause.
-
+# [display] shared output helpers (display.py, Member 1)
+from display import log_event, COLORS, RESET, USE_COLOR, _print_lock
 
 HEADER_FMT = "!BIH"  # format string for packet header used by struct library
 # ! = network byte order, B unsigned char for byte type, I unsigned int for seq number,H unsigned short for data length
@@ -26,10 +29,11 @@ BETA = 0.25
 INITIAL_TIMEOUT = 1.0  # deafult from book
 DUP_ACK_THRESHOLD = 3  # deafult
 
-# colors for terminal
-C = {"reset": "\033[0m", "green": "\033[92m", "yellow": "\033[93m",
-     "red": "\033[91m", "cyan": "\033[96m", "magenta": "\033[95m",
-     "grey": "\033[90m", "bold": "\033[1m"}
+# [display] the local color table was removed; colors now come from display.COLORS
+
+
+# [display] which display.py color each window state uses
+STATE_KIND = {SENT: "SEND", RETRANSMITTED: "RETX", ACKED: "ACK", NOT_SENT: "INFO"}
 
 
 class SenderWindow:
@@ -78,19 +82,21 @@ class SenderWindow:
 
     # display stuff
 
-    def _c(self, name, text):
-        """colors text"""
-        return f"{C[name]}{text}{C['reset']}" if self.color else text  # prints the text normaly if color is off
+    def _c(self, kind, text):
+        """colors text  [display] using the shared display.py palette"""
+        color = COLORS.get(kind, "")
+        if self.color and USE_COLOR and color:
+            return f"{color}{text}{RESET}"
+        return text  # prints the text normaly if color is off
 
-    def log(self, text, color="reset"):
-        """prints the line per event"""
-        stamp = time.strftime("%H:%M:%S")  # time
-        print(f"{self._c('grey', stamp)}  {self._c(color, text)}",
-              flush=True)  # print
+    def log(self, text, kind="INFO"):
+        """prints the line per event  [display] through the shared log_event()"""
+        log_event("SENDER", kind, text)
 
     def _seq_label(self, seq):
         """checks in the current sequence is the end packet"""
-        return "END" if seq == self.total - 1 else str(seq)
+        # [display] END(n) label, same as channel.py
+        return f"END({seq})" if seq == self.total - 1 else str(seq)
 
     def show_window(self):
         """prints the packets and whats happining as it happens.
@@ -102,21 +108,17 @@ class SenderWindow:
             st = self.state[s]  # read the state of that packet (by index)
             label = f"{s}"  # convert to string
             # concider each case and give it a diffrent collor
-            if st == SENT:
-                cells.append(self._c("yellow", f"{label}:S"))
-            elif st == RETRANSMITTED:
-                cells.append(self._c("magenta", f"{label}:R"))
-            elif st == ACKED:
-                cells.append(self._c("green", f"{label}:A"))
-            else:  # not yet sent, window just slid
-                cells.append(self._c("grey", f"{label}:."))
-        view = (f"WINDOW [{self.base}–{max(hi, self.base)}]  "  # max to ensure no reverse windows
+            # [display] colors come from display.py via STATE_KIND
+            letter = {SENT: "S", RETRANSMITTED: "R", ACKED: "A"}.get(st, ".")
+            cells.append(self._c(STATE_KIND[st], f"{label}:{letter}"))
+        view = (self._c("WINDOW", f"WINDOW [{self.base}–{max(hi, self.base)}]") + "  "  # max to ensure no reverse windows
                 + " ".join(cells)
                 # prints timer
-                + self._c("grey", f"   timeout={self.timeout_interval*1000:.0f}ms"))
+                + self._c("INFO", f"   timeout={self.timeout_interval*1000:.0f}ms"))
         if view != self._last_window_view:      # print only when something changed
             self._last_window_view = view
-            self.log(view, "cyan")  # cyan for the prefix is applied here
+            # [display] no whole-line color here: each cell already carries its own
+            log_event("SENDER", None, view)
 
     # sending helpers
 
@@ -138,7 +140,7 @@ class SenderWindow:
             if self.timed_seq is None:
                 self.timed_seq = seq  # store seq number of the packet being timed
                 self.timed_start = time.time()  # store send time to compare later
-            self.log(f"SEND {self._seq_label(seq)}", "reset")  # print it
+            self.log(f"SEND {self._seq_label(seq)}", "SEND")  # print it [display] kind
         # gives the unreliable connection the packet
         self.channel_send(self.packets[seq])
 
@@ -196,7 +198,7 @@ class SenderWindow:
                 self.state[s] = ACKED
             self.log(f"ACK {ack if ack < self.total else 'END'} received "
                      # print the acked packets
-                     f"→ packets {self.base}–{newest} acknowledged", "green")
+                     f"→ packets {self.base}–{newest} acknowledged", "ACK")  # [display] kind
             self.base = ack   # slide the window
             self.dup_count = 0  # new ack means not duplicate so resest
             # what to do with the timer?
@@ -214,12 +216,12 @@ class SenderWindow:
             self.stats["duplicate_acks"] += 1  # update stat
             self.dup_count += 1  # update the number of consequitive duplicates
             self.log(f"DUP ACK {ack} (#{self.dup_count})",
-                     "yellow")  # print the new duplicate
+                        "DUPACK")  # print the new duplicate  [display] kind
             # fast retransmit case and still packets to send
             if self.dup_count == DUP_ACK_THRESHOLD and self.base < self.total:
                 self.stats["fast_retransmits"] += 1  # update stat
                 self.log(f"3 DUP ACKS → RETRANSMIT {self._seq_label(self.base)}",
-                         "magenta")  # print fast retransmit
+                         "RETX")  # print fast retransmit  [display] kind
                 # transmit the missing packet
                 self._transmit(self.base, retransmission=True)
                 self.show_window()  # print whats going on
@@ -279,7 +281,7 @@ class SenderWindow:
                 # timer is implictly allways of the base segment so we get its label
                 label = self._seq_label(self.base)
                 # print out
-                self.log(f"TIMEOUT {label} → RETRANSMIT {label}", "red")
+                self.log(f"TIMEOUT {label} → RETRANSMIT {label}", "TIMEOUT")  # [display] kind
                 # retransmit smallest not acked segment
                 self._transmit(self.base, retransmission=True)
                 # reset timer by timeout case (double)
@@ -293,23 +295,25 @@ class SenderWindow:
         return self.stats  # return stats
 
     def print_summary(self):
-        """sender half of the final summary"""
+        """sender half of the final summary
+        [display] same block layout as display.print_settings"""
         s = self.stats
-        line = self._c("bold", "=" * 52)  # makes a line \__'-'__/
-        print(line)
-        print(self._c("bold", "  SENDER SUMMARY (Member 2 — window & retransmission)"))
-        print(line)
-        print(f"  Packets in file (incl. END) : {self.total}")
-        print(f"  New packets sent            : {s['new_packets']}")
-        print(f"  Total transmissions         : {s['transmissions']}")
-        print(f"  Retransmissions             : {s['retransmissions']}")
-        print(f"     ├ by timeout             : {s['timeouts']}")
-        print(f"     └ by fast retransmit     : {s['fast_retransmits']}")
-        print(f"  ACKs received               : {s['acks_received']}")
-        print(f"     └ of which duplicates    : {s['duplicate_acks']}")
-        print(f"  Transfer time               : {s['transfer_time']:.3f} s")
-        if self.estimated_rtt is not None:
-            print(f"  Final EstimatedRTT / DevRTT : {self.estimated_rtt*1000:.2f} ms / "
-                  f"{self.dev_rtt*1000:.2f} ms")
-        print(line)
+        with _print_lock:
+            line = "=" * 60
+            print(line)
+            print(" SENDER SUMMARY (Member 2 — window & retransmission)")
+            print("-" * 60)
+            print(f" Packets in file (incl. END) : {self.total}")
+            print(f" New packets sent            : {s['new_packets']}")
+            print(f" Total transmissions         : {s['transmissions']}")
+            print(f" Retransmissions             : {s['retransmissions']}")
+            print(f"    ├ by timeout             : {s['timeouts']}")
+            print(f"    └ by fast retransmit     : {s['fast_retransmits']}")
+            print(f" ACKs received               : {s['acks_received']}")
+            print(f"    └ of which duplicates    : {s['duplicate_acks']}")
+            print(f" Transfer time               : {s['transfer_time']:.3f} s")
+            if self.estimated_rtt is not None:
+                print(f" Final EstimatedRTT / DevRTT : {self.estimated_rtt*1000:.2f} ms / "
+                      f"{self.dev_rtt*1000:.2f} ms")
+            print(line, flush=True)
     # pretty printing for a good grade :)
