@@ -95,9 +95,10 @@ class SenderWindow:
         """prints the line per event  [display] through the shared log_event()"""
         log_event("SENDER", kind, text)
 
-    def _seq_label(self, seq):
+        def _seq_label(self, seq):
         """checks in the current sequence is the end packet"""
-        return "END" if seq == self.total - 1 else str(seq)
+        # [display] END(n) label, same as channel.py
+        return f"END({seq})" if seq == self.total - 1 else str(seq)
 
     def show_window(self):
         """prints the packets and whats happining as it happens.
