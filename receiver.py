@@ -183,7 +183,7 @@ def receive_datagrams(receiver_socket, output_file):
             packet_type, sequence_number, payload = parse_packet(packet_bytes)
         except ValueError as error:
             # A bad packet is reported and ignored without stopping the receiver
-             log("ERROR",
+            log("ERROR",
                 f"DISCARD malformed packet from "
                 f"{sender_address[0]}:{sender_address[1]}: {error}")
             continue
@@ -285,7 +285,7 @@ def receive_datagrams(receiver_socket, output_file):
                     f"→ ACK {expected_sequence}")
             else:
                 # Report the buffered packets processed after a gap was filled
-                 log("RECV",
+                log("RECV",
                     f"RECV {packet_label} fills gap, released buffered "
                     f"{accepted_sequences[1:]} incl. END "
                     f"→ ACK {expected_sequence}")
