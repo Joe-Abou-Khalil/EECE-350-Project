@@ -17,8 +17,8 @@ import sys  # to error and exit
 # import everything needed from the other files
 from packet import build_packets, CHUNK_SIZE   # makes the packets
 from channel import UnreliableChannel  # unrelaible chanel to send through
-# display stuff TODO add  print_final_summary to imports
-from display import print_settings, reset_clock
+# display stuff (print_final_summary added by Member 1)
+from display import print_settings, reset_clock, print_final_summary
 from sender_window import SenderWindow           # sender
 
 
@@ -93,22 +93,7 @@ def main():
         stats = window.run()
         channel.flush()  # sends any remaning packets remaining (since it ended, they are unneeded)
 
-        # TODO for member 1 implement a summary function that takes in stats as an argument
-        # refer to window.print_summary() if you want an example for the sender window part.
-        """
-        more comprehensive todo: 
-        TODO (display): add print_final_summary(stats, channel_stats) to display.py. It’s called once at the end of the transfer.
-        stats is the dict from SenderWindow.run(): transmissions, new_packets, retransmissions, timeouts, fast_retransmits, acks_received, duplicate_acks, transfer_time (seconds), estimated_rtt and dev_rtt (seconds, or None if never measured).
-        channel_stats is from channel.summary(): handed, sent, dropped, reordered.
-        The PDF’s summary must show: packets sent, dropped, reordered, retransmitted, timeouts, transfer time, and whether the file matches. The sender can’t know MATCH or MISMATCH, so add a line pointing to the receiver terminal.
-        Use _print_lock, like print_settings.
-        Tell me when it’s in so i can remove this comment and remmove print summary from sender_window.py and add it to imports from display
-        """
-        # final summary
-        def print_final_summary(stats, channel_stats):
-            """TEMPORARY placeholder — to be replaced by the real summary."""
-            print(stats, channel_stats)
-
+        # final summary (display.py, Member 1)
         print_final_summary(stats, channel.summary())
 
     except KeyboardInterrupt:
