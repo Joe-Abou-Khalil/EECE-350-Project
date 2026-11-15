@@ -1,4 +1,4 @@
-# =============================================================================
+
 # packet.py  —  Packet format, file splitting, END packet
 # Author: Taline Bteddini  (Member 1)
 #
@@ -8,7 +8,7 @@
 #                        make_packet, parse_packet, build_packets
 #   AI-assisted (Claude, Anthropic): module layout and constants;
 #                        reviewed by Member 1.
-# =============================================================================
+
 import hashlib
 import os
 import struct
@@ -18,7 +18,7 @@ ACK = 1
 END = 2
 TYPE_NAMES = {DATA: "DATA", ACK: "ACK", END: "END"}
 
-# ---- Header format — Member 1 ----
+#Header format (Member 1)
 HEADER_FMT = "!BIH"
 HEADER_SIZE = struct.calcsize(HEADER_FMT)
 
@@ -28,7 +28,7 @@ MAX_CHUNK_SIZE = MAX_UDP_PAYLOAD - HEADER_SIZE
 RECV_BUFFER = 65535
 
 
-# ---- Member 1 (from AI-generated reference) ----
+#Member 1 (from AI-generated reference) 
 def make_packet(ptype, seq, data=b""):
     if ptype not in TYPE_NAMES:
         raise ValueError(f"unknown packet type {ptype}")
@@ -38,7 +38,7 @@ def make_packet(ptype, seq, data=b""):
     return header + data
 
 
-# ---- Member 1 (from AI-generated reference) ----
+#Member 1 (from AI-generated reference)
 def parse_packet(raw):
     if len(raw) < HEADER_SIZE:
         raise ValueError("packet shorter than header")
@@ -51,12 +51,12 @@ def parse_packet(raw):
     return ptype, seq, data
 
 
-# ---- Member 1 ----
+#Member 1
 def make_ack(next_expected):
     return make_packet(ACK, next_expected)
 
 
-# ---- Member 1 (from AI-generated reference) ----
+#Member 1 (from AI-generated reference) 
 def build_packets(path, chunk_size=CHUNK_SIZE):
     if not 1 <= chunk_size <= MAX_CHUNK_SIZE:
         raise ValueError(f"chunk size must be between 1 and {MAX_CHUNK_SIZE}")
