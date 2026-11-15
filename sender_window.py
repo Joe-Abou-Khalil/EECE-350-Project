@@ -4,7 +4,7 @@ sender_window.py — EECE 350 Final Project: Reliable File Transfer over UDP
  MEMBER 2: Kassem Haidar
  Part: Sender — sliding window, TCP-style timer, retransmission, statistics
   DISPLAY NOTE: output formatting in this file was switched to the shared
- display.py helpers (Member 1) so sender, channel and receiver logs share one
+ display.py helpers (Member 1) so sender, channel and receiver logs share one format
 """
 
 
@@ -28,6 +28,7 @@ ALPHA = 0.125
 BETA = 0.25
 INITIAL_TIMEOUT = 1.0  # deafult from book
 DUP_ACK_THRESHOLD = 3  # deafult
+MAX_TIMEOUT = 2.0  # upper bound on the timeout interval keeps demo from stalling
 
 # [display] the local color table was removed; colors now come from display.COLORS
 
@@ -63,7 +64,7 @@ class SenderWindow:
 
         # timing stuff
         self.estimated_rtt = None  # estimate of rtt
-        self.dev_rtt = None  # estimate of std divitation of rtt
+        self.dev_rtt = None  # estimate of average deviation of rtt
         # the inital timeout, set to 1sec by deafult
         self.initial_timeout = initial_timeout
         # the current timeout interval, initaly set to inital_timeout
@@ -94,7 +95,7 @@ class SenderWindow:
         log_event("SENDER", kind, text)
 
     def _seq_label(self, seq):
-        """checks in the current sequence is the end packet"""
+        """returns the proper label to print"""
         # [display] END(n) label, same as channel.py
         return f"END({seq})" if seq == self.total - 1 else str(seq)
 
@@ -128,9 +129,9 @@ class SenderWindow:
         if retransmission:  # handles retransmision case
             self.state[seq] = RETRANSMITTED  # set state to retransmited
             self.stats["retransmissions"] += 1  # update stat
-            # we dont take the RTT for a retransmited packet as 2 versions could be in flight and its not clear which is wich.
-            if seq == self.timed_seq:
-                self.timed_seq = None
+            # we dont take the RTT after retransmission as retransmission would have to complete
+            # before getting the ACK, so the RTT would be inflated
+            self.timed_seq = None
         # printing the retransmited packet is handled by the caller of this function
         # (reason of this function call is unkown so we cant handle it)
         else:  # handles normal transmision case
@@ -156,7 +157,7 @@ class SenderWindow:
            if not after a timeout it computes the new timeout using the normal helper function.
         """
         if after_timeout:
-            self.timeout_interval *= 2
+            self.timeout_interval = min(self.timeout_interval * 2, MAX_TIMEOUT)
         else:
             self.timeout_interval = self._computed_timeout()
         # record the time at start (we notice expiery by checking against this time)
@@ -176,7 +177,7 @@ class SenderWindow:
             self.dev_rtt = sample / 2
         else:  # if a measurment has been done
             self.dev_rtt = (1 - BETA) * self.dev_rtt + BETA * \
-                abs(sample - self.estimated_rtt)  # variance formula (based on old est value)
+                abs(sample - self.estimated_rtt)  # average deviation formula (based on old est value)
             self.estimated_rtt = (1 - ALPHA) * \
                 self.estimated_rtt + ALPHA * sample  # estimated rtt formula.
 
@@ -297,7 +298,7 @@ class SenderWindow:
     def print_summary(self):
         """sender half of the final summary
         [display] same block layout as display.print_settings
-        print_summary is now depreciated after display.py took over all display related tasks.
+        print_summary is now deprecated after display.py took over all display related tasks.
         kept only in case of testing 
         """
         s = self.stats
