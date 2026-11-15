@@ -1,4 +1,3 @@
-# =============================================================================
 # display.py  —  Shared color-coded terminal output
 # Author: Taline Bteddini  (Member 1)
 #
@@ -6,17 +5,15 @@
 #   Written by Member 1: print_settings
 #   AI-generated (Claude, Anthropic), reviewed by Member 1: ANSI color setup,
 #                        thread-safe log_event, reset_clock, human_size
-#
 # All three parts print through log_event() so the sender and receiver logs
 # use the same colors and never interleave half-lines between threads.
-# =============================================================================
 import os
 import sys
 import threading
 import time
 
 if os.name == "nt":
-    os.system("")            # enables ANSI colors in the Windows 10+ terminal
+    os.system("")            # enables ANSI colors 
 
 USE_COLOR = sys.stdout.isatty() and "NO_COLOR" not in os.environ
 
@@ -50,7 +47,7 @@ def reset_clock():
 
 
 def log_event(side, kind, text):
-    """One line per event, e.g.  [  0.012s] SENDER   DROPPED 13 (simulated)"""
+    """One line per event, e.g."""
     line = f"[{time.monotonic() - _t0:8.3f}s] {side:<8} {text}"
     color = COLORS.get(kind, "")
     if USE_COLOR and color:
@@ -67,12 +64,7 @@ def human_size(n):
 
 
 def print_settings(info, window_size, loss, reorder):
-    """Settings block shown at start.  (Member 1)"""
-    # TODO (Member 1): print a clear block with file name, size (human_size),
-    #   chunk size, number of packets (DATA + END), window size N,
-    #   loss and reorder probabilities. Wrap the prints in `with _print_lock:`
-    #   so another thread can't print in the middle of it.
-
+    #Member 1
     with _print_lock:
         line = "=" * 60
         print(line)
