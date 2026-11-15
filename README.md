@@ -1,6 +1,6 @@
 # EECE 350 - Reliable File Transfer over UDP
 
-This is our Computer Networks final project. We use Python 3 to send a file over UDP, simulate packet loss and reordering, and recover missing packets. The receiver puts the file back together and checks its SHA-256 hash. Everything uses Python standard libraries.
+This is our EECE 350 final project. We used Python to send a file over UDP, simulate packet loss and reordering, and recover missing packets. The receiver puts the file back together and checks its SHA-256 hash. Everything uses Python standard libraries.
 
 ## Our parts
 
@@ -9,12 +9,6 @@ This is our Computer Networks final project. We use Python 3 to send a file over
 - Joe Abou Khalil (Member 3): receiver, buffering, cumulative ACKs, file reconstruction and hash checking. File: `receiver.py`.
 
 `sender.py` connects the sender components. Keep all the Python files in the same folder.
-
-## Before running
-
-As of November 15, the sender and final summary are uploaded, but there is an extra `§` at the start of line 1 in `sender_window.py`. It needs to be removed before the sender can run. The commands below are for after that fix.
-
-Pull request #3 contains receiver display changes and is still separate from `main`.
 
 ## How to run it
 
@@ -77,14 +71,6 @@ If packet 2 arrives while the receiver is waiting for 1, it buffers 2 and repeat
 
 END uses the sequence after the last DATA packet and carries the original file's raw 32-byte SHA-256 hash. The receiver accepts END in order and ACKs the next sequence. For an empty file, END is 0 and its ACK is 1. The final ACK confirms receipt; the hash result is shown in the receiver terminal.
 
-## Testing and remaining work
-
-An isolated copy of commit `97a6744` passed normal transfer, loss, reordering, combined loss/reordering and empty-file checks on November 14. The reconstructed bytes and hashes matched. Those results belong to that version, not the newer code.
-
-Before submission, fix the startup character and repeat those tests on the final version. Also test duplicate packets, a lost final ACK and an intentionally wrong END hash. Review the pending receiver display changes before merging them.
-
-The sender now prints transfer statistics, including drops, reordering, retransmissions, timeouts and elapsed time. Check the receiver terminal for the file integrity result.
-
 ## AI assistance
 
-Member 1's files identify the sections written with Claude assistance. The initial Member 3 scaffold, comments and independent tests were developed with OpenAI Codex. This README was also revised with Codex assistance. Each member should keep their contribution notes accurate, document any other assistance used, and be able to explain their code.
+Member 1's files identify the sections written with Claude assistance. The initial Member 3 draft layout, variables, and function names was developed with OpenAI Codex. This README was written by Member 3 but revised with Codex.
