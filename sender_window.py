@@ -293,10 +293,13 @@ class SenderWindow:
         self.stats["estimated_rtt"] = self.estimated_rtt
         self.stats["dev_rtt"] = self.dev_rtt
         return self.stats  # return stats
-
+    
     def print_summary(self):
         """sender half of the final summary
-        [display] same block layout as display.print_settings"""
+        [display] same block layout as display.print_settings
+        print_summary is now depreciated after display.py took over all display related tasks.
+        kept only in case of testing 
+        """
         s = self.stats
         with _print_lock:
             line = "=" * 60
