@@ -1,13 +1,15 @@
 """
-sender.py — EECE 350 Final Project: Reliable File Transfer over UDP
-================================================================================
- Main sender script: connects Member 1s packets and Unreliable Channel with
- Member 2 (Kassem Haidar) sliding window, then prints the settings and the final summary.
-================================================================================
+ Main sender program: connects member 1s packets and unreliable channel with
+ member 2s sliding window then prints the settings and the final summary using member 1's display.
 
-Run (start receiver.py first, in another terminal):
+how to run:
+start receiver.py first
     python sender.py <file> [-N 8] [--loss 0.1] [--reorder 0.1]
                             [--host 127.0.0.1] [--port 5005] [--chunk 1024] [--seed S]
+ all code was writen by Kassem Haidar (member 2) outside of the display changes done by member 1.
+ Claude was used as a tool for reaserch/advice on what to do, debuging, and ensuring the code was structured
+ and formated properly. It was especially helpfull in understanding and advising on the implemntation of
+ the imported standard libraries which I have little experience with.
 """
 
 import argparse  # pareses comand line arguments
@@ -23,7 +25,7 @@ from sender_window import SenderWindow           # sender
 
 
 def parse_args():
-    """parse the arguments from the terminal."""
+    """parse the arguments from the terminal, help text writen by claude for quality of life"""
     p = argparse.ArgumentParser(
         description="Reliable file transfer over UDP — sender")
     # where the file is
@@ -53,7 +55,7 @@ def parse_args():
                         "and reorders (default: random each run)")
     args = p.parse_args()  # stores terminal arguments
     if args.window < 1:  # restriction on window size
-        p.error("window size N must be at least 1")
+        p.error("window size must be at least 1")
     return args
 
 
@@ -67,7 +69,7 @@ def main():
         # give up if the packet file is not found
         sys.exit(f"Error: file not found: {args.file}")
     except ValueError as e:
-        # something wrong with the packets in the file, chunk size is invalid.
+        # something wrong with the packets in the file, ie chunk size is invalid.
         sys.exit(f"Error: {e}")
 
     # create a UDP IPv4 socket
