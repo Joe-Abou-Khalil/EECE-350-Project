@@ -1,7 +1,6 @@
 
 # packet.py  —  Packet format, file splitting, END packet
 # Author: Taline Bteddini  (Member 1)
-#
 # CONTRIBUTIONS IN THIS FILE
 #   Written by Member 1: header format, make_ack
 #   Written by Member 1 from an AI-generated reference (Claude, Anthropic):
@@ -26,7 +25,6 @@ CHUNK_SIZE = 1024
 MAX_UDP_PAYLOAD = 65507
 MAX_CHUNK_SIZE = MAX_UDP_PAYLOAD - HEADER_SIZE
 RECV_BUFFER = 65535
-
 
 #Member 1 (from AI-generated reference) 
 def make_packet(ptype, seq, data=b""):
