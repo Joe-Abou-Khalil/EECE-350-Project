@@ -1,12 +1,8 @@
-# display.py  —  Shared color-coded terminal output
-# Author: Taline Bteddini  (Member 1)
-#
-# CONTRIBUTIONS IN THIS FILE
-#   Written by Member 1: print_settings
-#   AI-generated (Claude, Anthropic), reviewed by Member 1: ANSI color setup,
-#                        thread-safe log_event, reset_clock, human_size
-# All three parts print through log_event() so the sender and receiver logs
-# use the same colors and never interleave half-lines between threads.
+# display.py (Shared color-coded terminal output)
+# Taline Bteddini  (Member 1)
+# Written by Member 1: print_settings, human_size,reset_clock, print_final_summary, color table
+# AI-generated (Claude, Anthropic), reviewed by Member 1: thread-safe log_event, terminal color detection (USE_COLOR, Windows setup)
+# All three parts print through log_event() so the sender and receiver logs use the same colors 
 import os
 import sys
 import threading
