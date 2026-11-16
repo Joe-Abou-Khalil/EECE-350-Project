@@ -1,13 +1,14 @@
 # display.py (Shared color-coded terminal output)
 # Taline Bteddini  (Member 1)
 # Written by Member 1: print_settings, human_size,reset_clock, print_final_summary, color table
-# AI-generated (Claude, Anthropic), reviewed by Member 1: thread-safe log_event, terminal color detection (USE_COLOR, Windows setup)
+# AI-generated (Claude, Anthropic), reviewed by Member 1: terminal color detection (USE_COLOR, Windows setup)
+#for thread-safe log_event, claude helped me understand and then i was able to do it on my own
 # All three parts print through log_event() so the sender and receiver logs use the same colors 
 import os
 import sys
 import threading
 import time
-
+#Member 1
 if os.name == "nt":
     os.system("")            # enables ANSI colors 
 
@@ -35,13 +36,13 @@ COLORS = {
 _print_lock = threading.Lock()
 _t0 = time.monotonic()
 
-
+#Member 1
 def reset_clock():
     """Call once when the transfer starts so timestamps begin at 0."""
     global _t0
     _t0 = time.monotonic()
 
-
+#Member 1
 def log_event(side, kind, text):
     """One line per event, e.g."""
     line = f"[{time.monotonic() - _t0:8.3f}s] {side:<8} {text}"
@@ -51,14 +52,14 @@ def log_event(side, kind, text):
     with _print_lock:
         print(line, flush=True)
 
-
+#Member 1
 def human_size(n):
     for unit in ("B", "KB", "MB", "GB"):
         if n < 1024 or unit == "GB":
             return f"{n:.0f} {unit}" if unit == "B" else f"{n:.2f} {unit}"
         n /= 1024
 
-
+#Member 1
 def print_settings(info, window_size, loss, reorder):
     #Member 1
     with _print_lock:
@@ -75,7 +76,7 @@ def print_settings(info, window_size, loss, reorder):
         print(f" Reorder       : {reorder}")
         print(line, flush=True)
 
-
+#Member 1
 def print_final_summary(stats, channel_stats):
    
     with _print_lock:
