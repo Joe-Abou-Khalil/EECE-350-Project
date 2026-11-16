@@ -1,13 +1,9 @@
-# channel.py  —  Unreliable Channel (Simulator)
-# Author: Taline Bteddini  (Member 1)
-#
-# CONTRIBUTIONS IN THIS FILE
-#   Written by Member 1: loss decision, reorder (hold/release), normal send
-#                        path, _transmit, summary, flush
-#   Written by Member 1 from an AI-generated reference (Claude, Anthropic):
-#                        input validation
-#   AI-generated (Claude, Anthropic), reviewed by Member 1: thread lock
-# Not part of the protocol: stands in for a real network. Member 2 calls channel.send(pkt) instead of sock.sendto().
+#channel.py (Unreliable Channel (Simulator))
+#Taline Bteddini  (Member 1)
+#Written by Member 1: loss decision, reorder (hold/release), normal send path, _transmit, summary, flush
+#Written by Member 1 from an AI-generated reference (Claude, Anthropic): input validation
+#AI-generated (Claude, Anthropic), reviewed by Member 1: thread lock
+#Member 2 calls channel.send(pkt) instead of sock.sendto().
 import random
 import threading
 from packet import END, parse_packet
@@ -32,8 +28,8 @@ class UnreliableChannel:
         self.rng = random.Random(seed)   # own generator -> same seed, same run
         self.log = log or (lambda kind, text: log_event("CHANNEL", kind, text))
         self.stats = {"handed": 0, "sent": 0, "dropped": 0, "reordered": 0}
-        self.held = None                 # the one packet being held back, or None
-        self.held_label = None           # its label, for the log
+        self.held = None                 # the one packet being held back,or none
+        self.held_label = None           # its label,for the log
 
         #AI-generated (Claude)
         # Member 2 may call send() from more than one thread (main loop + timer)
