@@ -1,12 +1,9 @@
-
-# packet.py  —  Packet format, file splitting, END packet
-# Author: Taline Bteddini  (Member 1)
-# CONTRIBUTIONS IN THIS FILE
-#   Written by Member 1: header format, make_ack
-#   Written by Member 1 from an AI-generated reference (Claude, Anthropic):
-#                        make_packet, parse_packet, build_packets
-#   AI-assisted (Claude, Anthropic): module layout and constants;
-#                        reviewed by Member 1.
+# packet.py (Packet format, file splitting, END packet)
+#Taline Bteddini  (Member 1)
+#Written by Member 1: header format, make_ack, packet types (DATA/ACK/END), chunk size, make_packet
+#Written by Member 1 from an AI-generated reference (Claude, Anthropic): parse_packet, build_packets
+#An AI reference: example given so I could understand and then do it on my own
+#AI-assisted (Claude, Anthropic): module layout and constants: reviewed by Member 1. and helped in debugging a few errors
 
 import hashlib
 import os
@@ -26,7 +23,7 @@ MAX_UDP_PAYLOAD = 65507
 MAX_CHUNK_SIZE = MAX_UDP_PAYLOAD - HEADER_SIZE
 RECV_BUFFER = 65535
 
-#Member 1 (from AI-generated reference) 
+#Member 1
 def make_packet(ptype, seq, data=b""):
     if ptype not in TYPE_NAMES:
         raise ValueError(f"unknown packet type {ptype}")
